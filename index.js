@@ -44,6 +44,13 @@ async function run() {
       res.send(cursor);
     });
 
+    app.get("/artifacts/:id", async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await artifactCollection.findOne(query)
+      res.send(result)
+    })
+
     // read history data
     app.get("/history", async (req, res) => {
       const cursor = await historyCollection.find().toArray();
