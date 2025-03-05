@@ -30,6 +30,7 @@ async function run() {
       .db("historyServer")
       .collection("artifacts");
 
+      // post artifacts data
     app.post("/artifacts", async (req, res) => {
       const user = req.body;
       console.log("product", user);
@@ -37,13 +38,19 @@ async function run() {
       res.send(result);
     });
 
-    // read history product
+    // read artifacts data
+    app.get("/artifacts", async (req, res) => {
+      const cursor = await artifactCollection.find().toArray();
+      res.send(cursor);
+    });
+
+    // read history data
     app.get("/history", async (req, res) => {
       const cursor = await historyCollection.find().toArray();
       res.send(cursor);
     });
 
-    // see single value history product
+    // see single value history data
     app.get("/history/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
