@@ -30,7 +30,7 @@ async function run() {
       .db("historyServer")
       .collection("artifacts");
 
-      // post artifacts data
+    // post artifacts data
     app.post("/artifacts", async (req, res) => {
       const user = req.body;
       console.log("product", user);
@@ -44,12 +44,21 @@ async function run() {
       res.send(cursor);
     });
 
-    app.get("/artifacts/:id", async(req, res) => {
+    // specific id
+    app.get("/artifacts/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
-      const result = await artifactCollection.findOne(query)
-      res.send(result)
-    })
+      const query = { _id: new ObjectId(id) };
+      const result = await artifactCollection.findOne(query);
+      res.send(result);
+    });
+
+    // delete artifacts 
+    app.delete("/artifacts/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await artifactCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // read history data
     app.get("/history", async (req, res) => {
