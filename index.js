@@ -52,11 +52,37 @@ async function run() {
       res.send(result);
     });
 
-    // delete artifacts 
+    // delete artifacts
     app.delete("/artifacts/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await artifactCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // update artifacts
+    app.put("/artifacts/:id", async (req, res) => {
+      const id = req.params.id;
+      const artifact = req.body;
+      console.log(id, artifact);
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateUser = {
+        $set: {
+          name: artifact.name,
+          artifactType: artifact.artifactType,
+          historicalContext: artifact.historicalContext,
+          createdAt: artifact.createdAt,
+          discoveredAt: artifact.discoveredAt,
+          photo: artifact.photo,
+          location: artifact.location,
+        },
+      };
+      const result = await artifactCollection.updateOne(
+        filter,
+        updateUser,
+        options
+      );
       res.send(result);
     });
 
