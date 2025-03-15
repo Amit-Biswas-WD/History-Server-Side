@@ -1,12 +1,15 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
+const app = express();
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.yit3t.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -24,6 +27,19 @@ async function run() {
 
     const historyCollection = client.db("historyServer").collection("history");
     const artifactColl = client.db("historyServer").collection("artifacts");
+
+    // Auth Related Api
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "2h",
+      });
+      res.cookie("token", token, {
+          httpOnly: true,
+          secure: false,
+        }).send({ success: true });
+    });
 
     // post artifacts data
     app.post("/artifacts", async (req, res) => {
@@ -45,7 +61,6 @@ async function run() {
       const result = await artifactColl.find(query).toArray();
       res.send(result);
     });
-
 
     // // specific id
     app.get("/artifacts/:id", async (req, res) => {
@@ -81,11 +96,7 @@ async function run() {
           location: artifact.location,
         },
       };
-      const result = await artifactColl.updateOne(
-        filter,
-        updateUser,
-        options
-      );
+      const result = await artifactColl.updateOne(filter, updateUser, options);
       res.send(result);
     });
 
