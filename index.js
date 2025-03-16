@@ -32,7 +32,6 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.yit3t.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -62,6 +61,12 @@ async function run() {
           httpOnly: true,
           secure: false,
         })
+        .send({ success: true });
+    });
+
+    app.post("/logout", (req, res) => {
+      res
+        .clearCookie("token", { httpOnly: true, secure: false })
         .send({ success: true });
     });
 
