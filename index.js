@@ -7,9 +7,31 @@ require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({ origin: ["http://localhost:5173"], credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
+
+const logger = (req, res, next) => {
+  console.log("inside the logger");
+  next();
+};
+
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+
+  if (!token) {
+    return res.status(401).send({ message: "Unauthorized access" });
+  }
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "Unauthorized access" });
+    }
+    req.user = decoded;
+    next();
+  });
+};
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.yit3t.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -33,12 +55,14 @@ async function run() {
       const user = req.body;
       console.log(user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "2h",
+        expiresIn: "5h",
       });
-      res.cookie("token", token, {
+      res
+        .cookie("token", token, {
           httpOnly: true,
           secure: false,
-        }).send({ success: true });
+        })
+        .send({ success: true });
     });
 
     // post artifacts data
@@ -55,9 +79,16 @@ async function run() {
     // });
 
     // get some data
-    app.get("/artifacts", async (req, res) => {
+    app.get("/artifacts", verifyToken, async (req, res) => {
+      // console.log("now inside the api callback");
       const email = req.query.email;
       const query = { email: email };
+
+      if (req.user.email !== req.query.email) {
+        return res.status(403).send({ message: "Forbidden access" });
+      }
+
+      // console.log("cuk cuk cookies", req.cookies);
       const result = await artifactColl.find(query).toArray();
       res.send(result);
     });
@@ -101,7 +132,7 @@ async function run() {
     });
 
     // read history data
-    app.get("/history", async (req, res) => {
+    app.get("/history", logger, async (req, res) => {
       const cursor = await historyCollection.find().toArray();
       res.send(cursor);
     });
