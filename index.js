@@ -17,7 +17,7 @@ const logger = (req, res, next) => {
 };
 
 const verifyToken = (req, res, next) => {
-  const token = req?.cookies?.token;
+  const token = req.cookies?.token;
 
   if (!token) {
     return res.status(401).send({ message: "Unauthorized access" });
@@ -49,17 +49,18 @@ async function run() {
     const historyCollection = client.db("historyServer").collection("history");
     const artifactColl = client.db("historyServer").collection("artifacts");
 
-    // Auth Related Api
+    // // Auth Related Api
     app.post("/jwt", async (req, res) => {
       const user = req.body;
       console.log(user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "5h",
+        expiresIn: "1h",
       });
       res
         .cookie("token", token, {
           httpOnly: true,
           secure: false,
+          sameSite: "strict",
         })
         .send({ success: true });
     });
@@ -77,26 +78,16 @@ async function run() {
       res.send(result);
     });
 
-    // read artifacts data
-    // app.get("/artifacts", async (req, res) => {
-    //   const cursor = await artifactColl.find().toArray();
-    //   res.send(cursor);
-    // });
-
-    // get some data
-    app.get("/artifacts", verifyToken, async (req, res) => {
-      // console.log("now inside the api callback");
+    app.get("/artifacts", async (req, res) => {
       const email = req.query.email;
-      const query = { email: email };
-
-      if (req.user.email !== req.query.email) {
-        return res.status(403).send({ message: "Forbidden access" });
+      let query = {};
+      if (email) {
+          query = { email: email };
       }
-
-      // console.log("cuk cuk cookies", req.cookies);
-      const result = await artifactColl.find(query).toArray();
-      res.send(result);
-    });
+      const result = await artifactColl.find(query).toArray();  
+      res.status(200).send(result);
+  });
+  
 
     // // specific id
     app.get("/artifacts/:id", async (req, res) => {
