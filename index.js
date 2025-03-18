@@ -48,6 +48,7 @@ async function run() {
 
     const historyCollection = client.db("historyServer").collection("history");
     const artifactColl = client.db("historyServer").collection("artifacts");
+    const likeCollection = client.db("historyServer").collection("like");
 
     // // Auth Related Api
     app.post("/jwt", async (req, res) => {
@@ -78,17 +79,55 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/artifacts", async (req, res) => {
+    //  Spacific email and all data
+    // app.get("/artifacts", verifyToken, async (req, res) => {
+    //   // console.log("now inside the api callback");
+    //   const email = req.query.email;
+    //   const query = { email: email };
+
+    //   if (req.user.email !== req.query.email) {
+    //     return res.status(403).send({ message: "Forbidden access" });
+    //   }
+
+    //   // console.log("cuk cuk cookies", req.cookies);
+    //   const result = await artifactColl.find(query).toArray();
+    //   res.send(result);
+    // });
+
+    //  Spacific email and all data
+    app.get("/artifacts",logger, verifyToken, async (req, res) => {
       const email = req.query.email;
       let query = {};
+      // if (req.user.email !== req.query.email) {
+      //   return res.status(403).send({ message: "Forbidden access" });
+      // }
       if (email) {
-          query = { email: email };
+        query = { email: email };
       }
-      const result = await artifactColl.find(query).toArray();  
-      res.status(200).send(result);
-  });
-  
+      const result = await artifactColl.find(query).toArray();
+      res.send(result);
+    });
 
+    // like / add
+    app.post("/like", async (req, res) => {
+      const like = req.body;
+      const result = await likeCollection.insertOne(like);
+      res.send(result);
+    });
+
+    // Spacific like email and all data
+    app.get("/like", async (req, res) => {
+      const email = req.query?.email;
+      let query = {};
+
+      if (email) {
+        query = { email: email };
+      }
+
+      const result = await likeCollection.find(query).toArray();
+      res.send(result);
+    });
+    
     // // specific id
     app.get("/artifacts/:id", async (req, res) => {
       const id = req.params.id;
