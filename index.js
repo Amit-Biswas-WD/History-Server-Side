@@ -95,7 +95,7 @@ async function run() {
     // });
 
     //  Spacific email and all data
-    app.get("/artifacts",logger, verifyToken, async (req, res) => {
+    app.get("/artifacts", logger, verifyToken, async (req, res) => {
       const email = req.query.email;
       let query = {};
       // if (req.user.email !== req.query.email) {
@@ -116,7 +116,7 @@ async function run() {
     });
 
     // Spacific like email and all data
-    app.get("/like", async (req, res) => {
+    app.get("/like", logger, async (req, res) => {
       const email = req.query?.email;
       let query = {};
 
@@ -127,7 +127,7 @@ async function run() {
       const result = await likeCollection.find(query).toArray();
       res.send(result);
     });
-    
+
     // // specific id
     app.get("/artifacts/:id", async (req, res) => {
       const id = req.params.id;
